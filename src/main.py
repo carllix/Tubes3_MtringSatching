@@ -3,7 +3,7 @@ import sys
 import os
 # sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# from gui.App import App
+from gui.App import App
 from database.Connection import DatabaseManager
 from config.AppConfig import AppConfig
 
@@ -14,8 +14,8 @@ def main():
         db_manager.connect()
         
         # # Initialize and run GUI
-        # app = MainWindow()
-        # app.run()
+        app = App()
+        app.run()
         
     except Exception as e:
         print(f"Error starting application: {e}")

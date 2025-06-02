@@ -2,17 +2,23 @@
 
 import customtkinter as ctk
 
-ctk.set_appearance_mode("System")
-ctk.set_default_color_theme("blue")
+class App:
+    def __init__(self):
+        # Setup global appearance
+        ctk.set_appearance_mode("System")
+        ctk.set_default_color_theme("blue")
 
-root = ctk.CTk()
-root.geometry("400x300")
-root.title("Test CustomTkinter")
+        # Create root window
+        self.root = ctk.CTk()
+        self.root.geometry("400x300")
+        self.root.title("Test CustomTkinter")
 
-label = ctk.CTkLabel(root, text="Hello, CustomTkinter!")
-label.pack(pady=20)
+        # Add components
+        label = ctk.CTkLabel(self.root, text="Hello, CustomTkinter!")
+        label.pack(pady=20)
 
-button = ctk.CTkButton(root, text="Click Me", command=lambda: print("Clicked!"))
-button.pack()
+        button = ctk.CTkButton(self.root, text="Click Me", command=lambda: print("Clicked!"))
+        button.pack()
 
-root.mainloop()
+    def run(self):
+        self.root.mainloop()
