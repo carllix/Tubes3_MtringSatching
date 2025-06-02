@@ -24,6 +24,37 @@
 
 ## Requirements & Installation
 
+**1.Create a virtual environment using the following command:**
+```bash
+python -m venv .venv
+```
+
+**2.Activate the environment**
+
+**For Windows:**
+```bash
+.venv\Scripts\activate
+```
+**For MacOS/Linux:**
+```bash
+source .venv/bin/activate
+```
+
+**3. Install the required dependencies for the program by running:**
+```bash
+pip install -r requirements.txt
+```
+
+**4. Create database (open terminal and run this command)**
+```bash
+mysql -u root -p < database_schema.sql
+```
+
+**5. Jalanin main.py (oiya janlup db password nya yg di AppConfg disesuaiin)**
+```bash
+python src/main.py
+```
+
 ## Author
 
 | **NIM**  | **Nama Anggota**     | **Github**                              |
