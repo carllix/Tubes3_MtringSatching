@@ -24,6 +24,16 @@
 
 ## Requirements & Installation
 
+**Bikin .env di root (Ini contoh)**
+```bash
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=admin123
+DB_NAME=ATS_SYSTEM
+BASE_DATA_PATH=data/
+```
+
 **1.Create a virtual environment using the following command:**
 ```bash
 python -m venv .venv

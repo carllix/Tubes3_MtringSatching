@@ -5,7 +5,7 @@ import os
 
 from src.gui.App import App
 from src.database.Connection import DatabaseManager
-from src.config.AppConfig import AppConfig
+# from src.config.AppConfig import AppConfig
 from src.database.Models import ApplicantProfile, ApplicationDetail
 from src.database.DAO import ApplicantDAO, ApplicationDAO
 

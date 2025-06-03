@@ -1,6 +1,6 @@
 import mysql.connector
 from mysql.connector import Error
-from src.config.AppConfig import AppConfig
+from src.config.DatabaseConfig import DatabaseConfig
 
 class DatabaseManager:
     """Database connection and management"""
@@ -12,10 +12,11 @@ class DatabaseManager:
         """Establish database connection"""
         try:
             self.connection = mysql.connector.connect(
-                host=AppConfig.DB_HOST,
-                user=AppConfig.DB_USER,
-                password=AppConfig.DB_PASSWORD,
-                database=AppConfig.DB_NAME
+                host=DatabaseConfig.HOST,
+                port=DatabaseConfig.PORT, 
+                user=DatabaseConfig.USER,
+                password=DatabaseConfig.PASSWORD,
+                database=DatabaseConfig.DATABASE
             )
             if self.connection.is_connected():
                 print("Connected to MySQL database")
