@@ -4,7 +4,7 @@ from datetime import date
 
 @dataclass
 class ApplicantProfile:
-    """Model for ApplicantProfile table"""
+    # Model untuk table ApplicantProfile
     applicant_id: Optional[int] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
@@ -14,7 +14,7 @@ class ApplicantProfile:
 
 @dataclass
 class ApplicationDetail:
-    """Model for ApplicationDetail table"""
+    # Model untuk table ApplicationDetail
     detail_id: Optional[int] = None
     applicant_id: int = None
     application_role: Optional[str] = None
@@ -22,7 +22,7 @@ class ApplicationDetail:
 
 @dataclass
 class SearchResult:
-    """Model for search results"""
+    # Model untuk hasil pencarian
     applicant_profile: ApplicantProfile
     application_detail: ApplicationDetail
     match_count: int

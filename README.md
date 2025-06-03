@@ -47,12 +47,17 @@ pip install -r requirements.txt
 
 **4. Create database (open terminal and run this command)**
 ```bash
-mysql -u root -p < database_schema.sql
+mysql -u root -p < src/database/schema.sql
 ```
 
 **5. Jalanin main.py (oiya janlup db password nya yg di AppConfg disesuaiin)**
 ```bash
-python src/main.py
+python -m src.main
+```
+
+**6. Buat Seeder**
+```bash
+python -m src.database.Seeder
 ```
 
 ## Author

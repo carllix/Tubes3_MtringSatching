@@ -1,6 +1,6 @@
 import mysql.connector
 from mysql.connector import Error
-from config.AppConfig import AppConfig
+from src.config.AppConfig import AppConfig
 
 class DatabaseManager:
     """Database connection and management"""
