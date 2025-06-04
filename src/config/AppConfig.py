@@ -27,4 +27,14 @@ import os
 load_dotenv()
 
 class AppConfig:
-    BASE_DATA_PATH = os.getenv("DATA_PATH", "data/")
+    BASE_DATA_PATH = os.getenv("BASE_DATA_PATH", "data/")
+    CV_FILES_PATH = os.path.join(BASE_DATA_PATH, "cv_files/")
+    EXTRACTED_TEXT_PATH = os.path.join(BASE_DATA_PATH, "extracted_texts/")
+    
+    # Application settings
+    APP_TITLE = "CV Analyzer App - ATS System"
+    APP_GEOMETRY = "1200x800"
+    
+    # Algorithm settings
+    LEVENSHTEIN_THRESHOLD = 0.7
+    MAX_FUZZY_MATCHES = 10

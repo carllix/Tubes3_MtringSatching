@@ -1,6 +1,6 @@
 # src/utils/text_preprocessor.py
 import re
-from typing import str
+from typing import List
 
 class TextPreprocessor:
     """Text cleaning and preprocessing utilities"""
