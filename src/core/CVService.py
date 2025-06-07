@@ -129,6 +129,25 @@ class CVService:
             cv_file = result['cv_file']
             if cv_file in app_lookup:
                 profile, detail = app_lookup[cv_file]
+                # Convert dataclass to dict for GUI compatibility
+                result['profile'] = {
+                    'applicant_id': profile.applicant_id,
+                    'first_name': profile.first_name,
+                    'last_name': profile.last_name,
+                    'date_of_birth': profile.date_of_birth,
+                    'address': profile.address,
+                    'phone_number': profile.phone_number
+                }
+                result['detail'] = {
+                    'detail_id': detail.detail_id,
+                    'applicant_id': detail.applicant_id,
+                    'application_role': detail.application_role,
+                    'cv_path': detail.cv_path
+                }
+                # Add CV text for summary view
+                result['cv_text'] = self.cv_texts_cache.get(cv_file, '')
+                
+                # Keep original for backward compatibility
                 result['applicant_profile'] = profile
                 result['application_detail'] = detail
                 

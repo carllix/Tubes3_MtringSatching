@@ -1,8 +1,7 @@
 import os
+import re
 import PyPDF2
-import fitz  # PyMuPDF - alternative PDF reader
 from typing import Dict, List, Optional
-from pathvalidate import sanitize_filename
 from src.utils.file.FileHandler import FileHandler
 from src.utils.file.TextPreprocessor import TextPreprocessor
 
@@ -12,6 +11,11 @@ class CVProcessor:
     def __init__(self):
         self.file_handler = FileHandler()
         self.text_preprocessor = TextPreprocessor()
+    
+    def sanitize_filename(self, filename: str) -> str:
+        """Sanitize filename by removing invalid characters"""
+        # Remove invalid characters for filename
+        return re.sub(r'[<>:"/\\|?*]', '_', filename)
     
     def extract_text_pypdf2(self, pdf_path: str) -> str:
         """Extract text from PDF using PyPDF2"""
@@ -26,25 +30,11 @@ class CVProcessor:
             print(f"Error extracting text with PyPDF2 from {pdf_path}: {e}")
             return ""
     
-    def extract_text_pymupdf(self, pdf_path: str) -> str:
-        """Extract text from PDF using PyMuPDF (more reliable)"""
-        try:
-            text = ""
-            doc = fitz.open(pdf_path)
-            for page in doc:
-                text += page.get_text() + "\n"
-            doc.close()
-            return text.strip()
-        except Exception as e:
-            print(f"Error extracting text with PyMuPDF from {pdf_path}: {e}")
-            return ""
-    
-    def extract_text_from_pdf(self, pdf_path: str, method: str = "pymupdf") -> str:
-        """Extract text from PDF file using specified method
+    def extract_text_from_pdf(self, pdf_path: str) -> str:
+        """Extract text from PDF file using PyPDF2
         
         Args:
             pdf_path: Path to PDF file
-            method: Extraction method ("pymupdf" or "pypdf2")
             
         Returns:
             Extracted text content
@@ -53,16 +43,8 @@ class CVProcessor:
             print(f"PDF file not found: {pdf_path}")
             return ""
         
-        if method.lower() == "pymupdf":
-            text = self.extract_text_pymupdf(pdf_path)
-            # Fallback to PyPDF2 if PyMuPDF fails
-            if not text:
-                text = self.extract_text_pypdf2(pdf_path)
-        else:
-            text = self.extract_text_pypdf2(pdf_path)
-            # Fallback to PyMuPDF if PyPDF2 fails
-            if not text:
-                text = self.extract_text_pymupdf(pdf_path)
+        # Extract text using PyPDF2
+        text = self.extract_text_pypdf2(pdf_path)
         
         # Clean the extracted text
         if text:
@@ -92,7 +74,7 @@ class CVProcessor:
         if save_extracted and output_dir:
             filename = os.path.basename(pdf_path)
             name_without_ext = os.path.splitext(filename)[0]
-            text_filename = f"{sanitize_filename(name_without_ext)}.txt"
+            text_filename = f"{self.sanitize_filename(name_without_ext)}.txt"
             text_path = os.path.join(output_dir, text_filename)
             
             self.file_handler.save_text_file(text, text_path)

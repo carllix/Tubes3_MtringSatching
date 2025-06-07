@@ -59,6 +59,18 @@ pip install -r requirements.txt
 ```bash
 mysql -u root -p < src/database/schema.sql
 ```
+**seed dlu boss**
+```
+python -c "
+import sys; sys.path.append('.')
+from src.database.Connection import DatabaseManager
+from src.database.Seeder import Seeder
+db = DatabaseManager()
+if db.connect():
+    Seeder(db).seedSampleData(20)
+    print('Database seeded!')
+"
+```
 
 **5. Jalanin main.py (oiya janlup db password nya yg di AppConfg disesuaiin)**
 ```bash
