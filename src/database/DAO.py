@@ -1,7 +1,10 @@
 from typing import List, Optional
 from src.database.Connection import DatabaseManager
 from src.database.Models import ApplicantProfile, ApplicationDetail
+from src.utils.encryption.Encryption import encrypt, decrypt
 import mysql.connector
+
+ENCRYPTION_KEY = "kucing" 
 
 class ApplicantDAO:
     def __init__(self, dbManager: DatabaseManager):
@@ -11,17 +14,22 @@ class ApplicantDAO:
         connection = self.dbManager.get_connection()
         cursor = connection.cursor()
         
+        encrypted_first_name = encrypt(applicant.first_name, ENCRYPTION_KEY)
+        encrypted_last_name = encrypt(applicant.last_name, ENCRYPTION_KEY)
+        encrypted_address = encrypt(applicant.address, ENCRYPTION_KEY)
+        encrypted_phone_number = encrypt(applicant.phone_number, ENCRYPTION_KEY)
+
         query = """
         INSERT INTO ApplicantProfile (first_name, last_name, date_of_birth, address, phone_number)
         VALUES (%s, %s, %s, %s, %s)
         """
         
         values = (
-            applicant.first_name,
-            applicant.last_name,
+            encrypted_first_name,
+            encrypted_last_name,
             applicant.date_of_birth,
-            applicant.address,
-            applicant.phone_number
+            encrypted_address,
+            encrypted_phone_number
         )
         
         cursor.execute(query, values)
@@ -42,9 +50,14 @@ class ApplicantDAO:
         cursor.close()
         
         if result:
+            result['first_name'] = decrypt(result['first_name'], ENCRYPTION_KEY)
+            result['last_name'] = decrypt(result['last_name'], ENCRYPTION_KEY)
+            result['address'] = decrypt(result['address'], ENCRYPTION_KEY)
+            result['phone_number'] = decrypt(result['phone_number'], ENCRYPTION_KEY)
             return ApplicantProfile(**result)
         return None
-        
+    
+    # TODO: belum encrypt
     def getAllApplicants(self) -> List[ApplicantProfile]:
         connection = self.dbManager.get_connection()
         cursor = connection.cursor(dictionary=True)
@@ -103,6 +116,12 @@ class ApplicationDAO:
             profileData = {k: v for k, v in result.items() 
                           if k in ['applicant_id', 'first_name', 'last_name', 
                                    'date_of_birth', 'address', 'phone_number']}
+            
+            profileData['first_name'] = decrypt(profileData['first_name'], ENCRYPTION_KEY)
+            profileData['last_name'] = decrypt(profileData['last_name'], ENCRYPTION_KEY)
+            profileData['address'] = decrypt(profileData['address'], ENCRYPTION_KEY)
+            profileData['phone_number'] = decrypt(profileData['phone_number'], ENCRYPTION_KEY)
+
             detailData = {k: v for k, v in result.items() 
                          if k in ['detail_id', 'applicant_id', 'application_role', 'cv_path']}
             

@@ -61,7 +61,7 @@ mysql -u root -p < src/database/schema.sql
 ```
 **seed dlu boss**
 ```
-python -c "
+python3 -c "
 import sys; sys.path.append('.')
 from src.database.Connection import DatabaseManager
 from src.database.Seeder import Seeder
