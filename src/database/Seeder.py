@@ -3,9 +3,9 @@ from faker import Faker
 import random
 import os
 
-from database.Connection import DatabaseManager
-from database.DAO import ApplicantDAO, ApplicationDAO
-from database.Models import ApplicantProfile, ApplicationDetail
+from src.database.Connection import DatabaseManager
+from src.database.DAO import ApplicantDAO, ApplicationDAO
+from src.database.Models import ApplicantProfile, ApplicationDetail
 
 class Seeder:
     def __init__(self, db_manager: DatabaseManager):

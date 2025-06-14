@@ -5,10 +5,14 @@ class BoyerMooreMatcher:
     
     @staticmethod
     def build_bad_character_table(pattern: str) -> Dict[str, int]:
-        """Build bad character table for Boyer-Moore algorithm"""
+        """Build bad character table using last occurrence for Boyer-Moore algorithm"""
         table = {}
-        for i in range(len(pattern) - 1):
-            table[pattern[i]] = len(pattern) - 1 - i
+        m = len(pattern)
+        
+        # Store the rightmost occurrence of each character
+        for i in range(m):
+            table[pattern[i]] = i
+        
         return table
     
     @staticmethod
@@ -83,10 +87,20 @@ class BoyerMooreMatcher:
             if j < 0:
                 # Pattern found
                 matches.append(i)
-                i += good_suffix[0]
+                # Use good suffix rule for next shift
+                i += good_suffix[0] if good_suffix[0] > 0 else 1
             else:
-                # Mismatch occurred
-                bad_char_shift = bad_char.get(text[i + j], m)
+                # Mismatch occurred at position j
+                # Calculate bad character shift
+                mismatched_char = text[i + j]
+                
+                if mismatched_char in bad_char:
+                    # Shift based on last occurrence
+                    bad_char_shift = max(1, j - bad_char[mismatched_char])
+                else:
+                    # Character not in pattern, shift by pattern length
+                    bad_char_shift = j + 1
+                
                 good_suffix_shift = good_suffix[j]
                 i += max(bad_char_shift, good_suffix_shift)
         

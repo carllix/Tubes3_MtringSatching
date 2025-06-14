@@ -5,17 +5,24 @@ class KMPMatcher:
     
     @staticmethod
     def build_failure_function(pattern: str) -> List[int]:
-        """Build the failure function (partial match table) for KMP algorithm"""
+        """Build the failure function (border array) for KMP algorithm
+        Border: longest proper prefix which is also a suffix"""
         if not pattern:
             return []
             
-        failure = [0] * len(pattern)
-        j = 0
+        m = len(pattern)
+        failure = [0] * m
         
-        for i in range(1, len(pattern)):
+        # failure[0] is always 0 (no proper prefix for single character)
+        j = 0  # length of previous longest prefix suffix
+        
+        # Calculate failure[i] for i = 1 to m-1
+        for i in range(1, m):
+            # pattern[i] doesn't match pattern[j]
             while j > 0 and pattern[i] != pattern[j]:
                 j = failure[j - 1]
             
+            # pattern[i] matches pattern[j]
             if pattern[i] == pattern[j]:
                 j += 1
             
@@ -41,22 +48,30 @@ class KMPMatcher:
         text = text.lower()
         pattern = pattern.lower()
         
+        n = len(text)
+        m = len(pattern)
+        
+        if m > n:
+            return []
+        
         matches = []
         failure = KMPMatcher.build_failure_function(pattern)
         
-        i = 0  # text index
-        j = 0  # pattern index
+        i = 0  # index for text
+        j = 0  # index for pattern
         
-        while i < len(text):
-            if text[i] == pattern[j]:
+        while i < n:
+            if pattern[j] == text[i]:
                 i += 1
                 j += 1
-                
-                if j == len(pattern):
-                    matches.append(i - j)
-                    j = failure[j - 1]
-            else:
-                if j > 0:
+            
+            if j == m:
+                # Found a match
+                matches.append(i - j)
+                j = failure[j - 1]  # Get next position to check
+            elif i < n and pattern[j] != text[i]:
+                # Mismatch after j matches
+                if j != 0:
                     j = failure[j - 1]
                 else:
                     i += 1

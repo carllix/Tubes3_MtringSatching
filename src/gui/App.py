@@ -8,12 +8,12 @@ import webbrowser
 from typing import Dict, List, Any
 from tkinter import messagebox
 
-from database.Connection import DatabaseManager
-from core.CVService import CVService
-from config.AppConfig import AppConfig
-from database.Models import SearchResult
-from gui.components.CVCard import CVCard
-from gui.view.SummaryView import SummaryView
+from src.database.Connection import DatabaseManager
+from src.core.CVService import CVService
+from src.config.AppConfig import AppConfig
+from src.database.Models import SearchResult
+from src.gui.components.CVCard import CVCard
+from src.gui.view.SummaryView import SummaryView
 
 class App:
     def __init__(self):
