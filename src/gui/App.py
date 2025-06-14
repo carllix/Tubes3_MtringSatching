@@ -64,7 +64,6 @@ class App:
     def setup_demo_mode(self):
         """Setup demo mode when database is not available"""
         print("🔧 Setting up demo mode...")
-        self.cv_service = None
         # Create some demo data for testing the GUI
         self.demo_cv_data = {
             "John_Doe_CV.pdf": "Software Engineer with 5 years experience in Python, Java, React, Node.js, SQL, Git, AWS",
@@ -73,6 +72,8 @@ class App:
             "Sarah_Wilson_CV.pdf": "DevOps Engineer with experience in Docker, Kubernetes, AWS, Python, Linux, CI/CD, Terraform",
             "David_Brown_CV.pdf": "Mobile Developer with expertise in React Native, Swift, Kotlin, Java, iOS, Android development"
         }
+        # Instead of setting cv_service to None, create a SimpleCVService with demo data
+        self.cv_service = SimpleCVService(self.demo_cv_data, debug=False)
     
     def setup_gui(self):
         """Setup the main GUI components"""
@@ -175,6 +176,14 @@ class App:
             text="BM (Boyer-Moore)",
             variable=self.algorithm_var,
             value="BM",
+            font=ctk.CTkFont(size=11)
+        ).pack(anchor="w", padx=15, pady=2)
+        
+        ctk.CTkRadioButton(
+            algorithm_frame,
+            text="AC (Aho-Corasick)",
+            variable=self.algorithm_var,
+            value="AC",
             font=ctk.CTkFont(size=11)
         ).pack(anchor="w", padx=15, pady=(2, 12))
         
@@ -295,12 +304,8 @@ class App:
         
         def search_thread():
             try:
-                if self.database_connected and self.cv_service:
-                    # Database search
-                    results, timing_info = self.cv_service.search_cvs(keywords, algorithm, num_matches)
-                else:
-                    # Demo search
-                    results, timing_info = self.perform_demo_search(keywords, algorithm, num_matches)
+                # Use cv_service for all searches - the service handles database or demo mode internally
+                results, timing_info = self.cv_service.search_cvs(keywords, algorithm, num_matches)
                 
                 # Update GUI in main thread
                 self.root.after(0, lambda: self.display_results(results, timing_info, keywords, algorithm))
@@ -313,64 +318,6 @@ class App:
         
         thread = threading.Thread(target=search_thread, daemon=True)
         thread.start()
-    
-    def perform_demo_search(self, keywords: List[str], algorithm: str, num_matches: int):
-        """Perform demo search on sample data"""
-        import time
-        import random
-        
-        start_time = time.time()
-        results = []
-        
-        # Simulate search through demo CV data
-        for cv_name, cv_text in self.demo_cv_data.items():
-            cv_text_lower = cv_text.lower()
-            exact_matches = {}
-            matched_keywords = []
-            total_matches = 0
-            
-            for keyword in keywords:
-                keyword_lower = keyword.lower()
-                # Count occurrences
-                count = cv_text_lower.count(keyword_lower)
-                if count > 0:
-                    exact_matches[keyword] = count
-                    matched_keywords.append(keyword)
-                    total_matches += count
-            
-            if total_matches > 0:
-                # Create result in expected format
-                results.append({
-                    'cv_file': cv_name,
-                    'profile': {
-                        'first_name': cv_name.replace('_', ' ').replace('.pdf', '').split()[0],
-                        'last_name': ' '.join(cv_name.replace('_', ' ').replace('.pdf', '').split()[1:]),
-                        'phone_number': f"+1-555-{random.randint(100, 999)}-{random.randint(1000, 9999)}",
-                        'address': f"{random.randint(100, 999)} Main St, City, State"
-                    },
-                    'detail': {
-                        'application_role': random.choice(['Software Engineer', 'Data Scientist', 'DevOps Engineer', 'Full Stack Developer']),
-                        'cv_path': f"demo/cv_files/{cv_name}"
-                    },
-                    'total_exact_matches': total_matches,
-                    'exact_matches': exact_matches,
-                    'matched_keywords': matched_keywords,
-                    'fuzzy_matches': {},
-                    'match_score': min(100, total_matches * 10),
-                    'cv_text': cv_text
-                })
-        
-        # Sort by total matches (descending) and limit results
-        results.sort(key=lambda x: x['total_exact_matches'], reverse=True)
-        results = results[:num_matches]
-        
-        end_time = time.time()
-        timing_info = {
-            'total_exact_match_time': (end_time - start_time) * 1000,  # Convert to ms
-            'total_fuzzy_match_time': 0
-        }
-        
-        return results, timing_info
     
     def display_results(self, results: List[Dict[str, Any]], timing_info: Dict, keywords: List[str], algorithm: str):
         """Display search results"""

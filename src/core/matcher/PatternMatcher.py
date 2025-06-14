@@ -3,6 +3,7 @@ import time
 from .KMP import KMPMatcher
 from .BM import BoyerMooreMatcher
 from .FuzzyMatcher import FuzzyMatcher
+from .AhoCorasick import AhoCorasick
 
 class PatternMatcher:
     """Main pattern matching coordinator for ATS system"""
@@ -19,13 +20,51 @@ class PatternMatcher:
         Args:
             keywords: List of keywords to search for
             text: Text to search in
-            algorithm: Algorithm to use ("KMP" or "BM")
+            algorithm: Algorithm to use ("KMP", "BM", or "AC")
             
         Returns:
             Dictionary mapping keyword to occurrence count
         """
         results = {}
         
+        # Use Aho-Corasick for multiple pattern matching in one pass
+        if algorithm.upper() == "AC":
+            # Create clean lowercase versions of keywords for case-insensitive matching
+            clean_lowercase_keywords = []
+            lowercase_to_original = {}
+            
+            for keyword in keywords:
+                keyword_clean = keyword.strip()
+                if not keyword_clean:
+                    continue
+                
+                lowercase = keyword_clean.lower()
+                clean_lowercase_keywords.append(lowercase)
+                lowercase_to_original[lowercase] = keyword
+            
+            # Initialize Aho-Corasick with clean lowercase keywords
+            ac = AhoCorasick(clean_lowercase_keywords)
+            
+            # Search all patterns at once in lowercase text
+            matches = ac.search(text.lower())
+            
+            # Count occurrences for each keyword
+            for keyword_lower, positions in matches.items():
+                original_keyword = lowercase_to_original[keyword_lower]
+                count = len(positions)
+                results[original_keyword] = count
+                
+                if self.debug and count > 0:
+                    print(f"🎯 EXACT MATCH [AC]: '{original_keyword}' found {count} times at positions: {positions}")
+            
+            # Ensure all keywords are in results
+            for keyword in keywords:
+                if keyword not in results:
+                    results[keyword] = 0
+            
+            return results
+        
+        # Handle KMP and BM algorithms (unchanged)
         for keyword in keywords:
             keyword_clean = keyword.strip()
             if not keyword_clean:
