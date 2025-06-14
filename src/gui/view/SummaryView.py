@@ -90,6 +90,52 @@ CV File: {detail.get('cv_path', 'N/A')}"""
         profile_textbox.insert("0.0", profile_info)
         profile_textbox.configure(state="disabled")
     
+    def create_match_stats_section(self, parent):
+        """Create the match statistics section"""
+        stats_frame = ctk.CTkFrame(parent)
+        stats_frame.pack(fill="x", pady=(0, 20))
+        
+        ctk.CTkLabel(
+            stats_frame,
+            text="📊 Match Statistics",
+            font=ctk.CTkFont(size=18, weight="bold")
+        ).pack(anchor="w", padx=15, pady=(15, 10))
+        
+        # Exact matches
+        exact_matches = self.result.get('exact_matches', {})
+        total_exact = self.result.get('total_exact_matches', 0)
+        
+        exact_info = f"Total Exact Matches: {total_exact}\\n"
+        exact_info += "Breakdown:\\n"
+        for keyword, count in exact_matches.items():
+            if count > 0:
+                exact_info += f"  • {keyword}: {count} occurrences\\n"
+        
+        if not any(count > 0 for count in exact_matches.values()):
+            exact_info += "  No exact matches found\\n"
+        
+        # Fuzzy matches
+        fuzzy_matches = self.result.get('fuzzy_matches', {})
+        total_fuzzy = self.result.get('total_fuzzy_matches', 0)
+        
+        fuzzy_info = f"\\nTotal Fuzzy Matches: {total_fuzzy}\\n"
+        fuzzy_info += "Breakdown:\\n"
+        for keyword, score in fuzzy_matches.items():
+            if score > 0:
+                fuzzy_info += f"  • {keyword}: {score:.3f} similarity\\n"
+        
+        if not any(score > 0 for score in fuzzy_matches.values()):
+            fuzzy_info += "  No fuzzy matches found\\n"
+        
+        stats_textbox = ctk.CTkTextbox(
+            stats_frame,
+            height=200,
+            font=ctk.CTkFont(size=12)
+        )
+        stats_textbox.pack(fill="x", padx=15, pady=(0, 15))
+        stats_textbox.insert("0.0", exact_info + fuzzy_info)
+        stats_textbox.configure(state="disabled")
+    
     def create_cv_content_section(self, parent):
         """Create the CV content section"""
         cv_frame = ctk.CTkFrame(parent)

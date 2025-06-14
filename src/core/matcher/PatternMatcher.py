@@ -118,8 +118,10 @@ class PatternMatcher:
         fuzzy_matches_detail = {}
         if unmatched_keywords:
             fuzzy_scores = self.fuzzy_matcher.calculate_fuzzy_score(unmatched_keywords, cv_text)
+            # Always generate fuzzy_matches_detail for GUI display
+            fuzzy_matches_detail = self.fuzzy_matcher.fuzzy_match_keywords(unmatched_keywords, cv_text)
+            
             if self.debug:
-                fuzzy_matches_detail = self.fuzzy_matcher.fuzzy_match_keywords(unmatched_keywords, cv_text)
                 for keyword, matches in fuzzy_matches_detail.items():
                     if matches:
                         best_match = max(matches, key=lambda x: x[1])

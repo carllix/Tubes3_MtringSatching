@@ -5,6 +5,8 @@ import threading
 import subprocess
 import os
 import webbrowser
+import time
+import random
 from typing import Dict, List, Any
 from tkinter import messagebox
 
@@ -14,6 +16,7 @@ from src.config.AppConfig import AppConfig
 from src.database.Models import SearchResult
 from src.gui.components.CVCard import CVCard
 from src.gui.view.SummaryView import SummaryView
+from src.core.matcher.PatternMatcher import PatternMatcher
 
 class App:
     def __init__(self):
@@ -47,6 +50,9 @@ class App:
     def setup_backend(self):
         """Initialize backend services"""
         self.database_connected = False
+        # Initialize pattern matcher for both database and demo modes
+        self.pattern_matcher = PatternMatcher(fuzzy_threshold=0.6, debug=True)
+        
         try:
             self.db_manager = DatabaseManager()
             # Try to connect to database
@@ -64,13 +70,14 @@ class App:
     def setup_demo_mode(self):
         """Setup demo mode when database is not available"""
         print("🔧 Setting up demo mode...")
-        # Create some demo data for testing the GUI
+        self.cv_service = None
+        # Create some demo data for testing the GUI with more varied content for fuzzy matching
         self.demo_cv_data = {
-            "John_Doe_CV.pdf": "Software Engineer with 5 years experience in Python, Java, React, Node.js, SQL, Git, AWS",
-            "Jane_Smith_CV.pdf": "Data Scientist with expertise in Python, R, Machine Learning, TensorFlow, Pandas, SQL, Statistics",
-            "Mike_Johnson_CV.pdf": "Full Stack Developer skilled in JavaScript, React, Node.js, MongoDB, Express, HTML, CSS",
-            "Sarah_Wilson_CV.pdf": "DevOps Engineer with experience in Docker, Kubernetes, AWS, Python, Linux, CI/CD, Terraform",
-            "David_Brown_CV.pdf": "Mobile Developer with expertise in React Native, Swift, Kotlin, Java, iOS, Android development"
+            "John_Doe_CV.pdf": "Software Engineer with 5 years experience in Python, Java, React, Node.js, SQL, Git, AWS Cloud Computing Machine Learning Programming Development",
+            "Jane_Smith_CV.pdf": "Data Scientist with expertise in Python, R, Machine Learning, TensorFlow, Pandas, SQL, Statistics Deep Learning Analytics Visualization",
+            "Mike_Johnson_CV.pdf": "Full Stack Developer skilled in JavaScript, React, Node.js, MongoDB, Express, HTML, CSS Frontend Backend Development Web Applications",
+            "Sarah_Wilson_CV.pdf": "DevOps Engineer with experience in Docker, Kubernetes, AWS, Python, Linux, CI/CD, Terraform Infrastructure Automation Deployment",
+            "David_Brown_CV.pdf": "Mobile Developer with expertise in React Native, Swift, Kotlin, Java, iOS, Android development Mobile Applications Programming"
         }
         # Instead of setting cv_service to None, create a SimpleCVService with demo data
         self.cv_service = SimpleCVService(self.demo_cv_data, debug=False)
@@ -131,7 +138,7 @@ class App:
         # Control panel title
         ctk.CTkLabel(
             scrollable_search,
-            text="🔍 Search Controls",
+            text="Search Controls",
             font=ctk.CTkFont(size=18, weight="bold")
         ).pack(pady=(10, 15))
         
@@ -219,7 +226,7 @@ class App:
         # Search button
         search_button = ctk.CTkButton(
             scrollable_search,
-            text="🔍 Search CVs",
+            text="Search CVs",
             font=ctk.CTkFont(size=14, weight="bold"),
             height=40,
             command=self.perform_search
@@ -236,7 +243,7 @@ class App:
         
         self.results_header = ctk.CTkLabel(
             header_frame,
-            text="📋 Search Results",
+            text="Search Results",
             font=ctk.CTkFont(size=18, weight="bold")
         )
         self.results_header.pack(pady=12)
@@ -319,6 +326,66 @@ class App:
         thread = threading.Thread(target=search_thread, daemon=True)
         thread.start()
     
+    def perform_demo_search(self, keywords: List[str], algorithm: str, num_matches: int):
+        """Perform demo search on sample data with fuzzy matching"""
+        start_time = time.time()
+        results = []
+        
+        # Search through demo CV data using PatternMatcher
+        for cv_name, cv_text in self.demo_cv_data.items():
+            # Use PatternMatcher for comprehensive search
+            search_result = self.pattern_matcher.search_single_cv(
+                keywords, cv_text, algorithm, cv_name
+            )
+            
+            # Only include CVs with at least one match (exact or fuzzy)
+            if (search_result['total_exact_matches'] > 0 or 
+                search_result['total_fuzzy_score'] > 0):
+                
+                # Create result in expected format
+                result = {
+                    'cv_file': cv_name,
+                    'profile': {
+                        'first_name': cv_name.replace('_', ' ').replace('.pdf', '').split()[0],
+                        'last_name': ' '.join(cv_name.replace('_', ' ').replace('.pdf', '').split()[1:]),
+                        'phone_number': f"+1-555-{random.randint(100, 999)}-{random.randint(1000, 9999)}",
+                        'address': f"{random.randint(100, 999)} Main St, City, State"
+                    },
+                    'detail': {
+                        'application_role': random.choice(['Software Engineer', 'Data Scientist', 'DevOps Engineer', 'Full Stack Developer']),
+                        'cv_path': f"demo/cv_files/{cv_name}"
+                    },
+                    'total_exact_matches': search_result['total_exact_matches'],
+                    'exact_matches': search_result['exact_matches'],
+                    'fuzzy_matches': search_result['fuzzy_matches'],
+                    'fuzzy_matches_detail': search_result.get('fuzzy_matches_detail', {}),
+                    'matched_keywords': search_result['matched_keywords'],
+                    'combined_score': search_result['combined_score'],
+                    'match_score': search_result['combined_score'],
+                    'cv_text': cv_text,
+                    'timing': search_result['timing']
+                }
+                
+                results.append(result)
+        
+        # Sort by combined score (descending) and limit results
+        results.sort(key=lambda x: x['combined_score'], reverse=True)
+        results = results[:num_matches]
+        
+        end_time = time.time()
+        
+        # Calculate total timing
+        total_exact_time = sum(r['timing']['exact_match_time'] for r in results)
+        total_fuzzy_time = sum(r['timing']['fuzzy_match_time'] for r in results)
+        
+        timing_info = {
+            'total_exact_match_time': total_exact_time,
+            'total_fuzzy_match_time': total_fuzzy_time,
+            'total_search_time': (end_time - start_time) * 1000
+        }
+        
+        return results, timing_info
+    
     def display_results(self, results: List[Dict[str, Any]], timing_info: Dict, keywords: List[str], algorithm: str):
         """Display search results"""
         # Update status with timing info
@@ -332,7 +399,7 @@ class App:
             timing_frame = ctk.CTkFrame(self.results_scrollable)
             timing_frame.pack(fill="x", padx=5, pady=(5, 10))
             
-            timing_text = f"⏱️ Search Time: {total_time:.2f}ms"
+            timing_text = f"Search Time: {total_time:.2f}ms"
             if timing_info.get('total_exact_match_time', 0) > 0:
                 timing_text += f" (Exact: {timing_info.get('total_exact_match_time', 0):.2f}ms"
                 if timing_info.get('total_fuzzy_match_time', 0) > 0:
@@ -353,7 +420,7 @@ class App:
             
             ctk.CTkLabel(
                 no_results_frame,
-                text="🔍 No matching CVs found",
+                text="No matching CVs found",
                 font=ctk.CTkFont(size=16, weight="bold")
             ).pack(pady=20)
             

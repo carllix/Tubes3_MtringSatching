@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import os
 import subprocess
+import re
 from tkinter import messagebox
 from typing import Dict, Any, List, Callable
 
@@ -55,6 +56,9 @@ class CVCard(ctk.CTkFrame):
         
         # Handle different data structures for matched_keywords
         matched_keywords = self.result.get('matched_keywords', [])
+        exact_keywords = []
+        fuzzy_keywords = []
+        
         if isinstance(matched_keywords, dict):
             # PatternMatcher format: {'exact': [...], 'fuzzy': [...]}
             exact_keywords = matched_keywords.get('exact', [])
@@ -63,6 +67,7 @@ class CVCard(ctk.CTkFrame):
                 total_matches = len(exact_keywords) + len(fuzzy_keywords)
         elif isinstance(matched_keywords, list):
             # Demo/simple format: [keyword1, keyword2, ...]
+            exact_keywords = matched_keywords
             if total_matches == 0:
                 total_matches = len(matched_keywords)
         
@@ -72,11 +77,25 @@ class CVCard(ctk.CTkFrame):
         if isinstance(exact_matches, dict):
             total_word_occurrences = sum(count for count in exact_matches.values() if isinstance(count, int))
         
-        # Create a more informative header
-        if total_word_occurrences > 0:
-            header_text = f"{name_text} • {total_matches} keywords • {total_word_occurrences} total words"
+        # Get combined score for enhanced display
+        combined_score = self.result.get('combined_score', self.result.get('match_score', 0))
+        
+        # Create a more informative header with score and match breakdown
+        header_parts = [name_text]
+        
+        if len(exact_keywords) > 0 and len(fuzzy_keywords) > 0:
+            header_parts.append(f"{len(exact_keywords)} exact + {len(fuzzy_keywords)} fuzzy")
+        elif len(exact_keywords) > 0:
+            header_parts.append(f"{len(exact_keywords)} exact matches")
+        elif len(fuzzy_keywords) > 0:
+            header_parts.append(f"{len(fuzzy_keywords)} fuzzy matches")
         else:
-            header_text = f"{name_text} • {total_matches} matches"
+            header_parts.append(f"{total_matches} matches")
+        
+        if combined_score > 0:
+            header_parts.append(f"Score: {combined_score:.1f}")
+        
+        header_text = " • ".join(header_parts)
         
         name_label = ctk.CTkLabel(
             header_frame,
@@ -94,6 +113,8 @@ class CVCard(ctk.CTkFrame):
         # Show matched keywords and counts
         matched_keywords = self.result.get('matched_keywords', [])
         exact_matches = self.result.get('exact_matches', {})
+        fuzzy_matches = self.result.get('fuzzy_matches', {})
+        fuzzy_matches_detail = self.result.get('fuzzy_matches_detail', {})
         
         # Handle different data structures for matched_keywords
         exact_keywords = []
@@ -122,57 +143,157 @@ class CVCard(ctk.CTkFrame):
         )
         match_summary_frame.pack(fill="x", padx=8, pady=(6, 4))
         
-        if all_matched_keywords and exact_matches:
-            # Display matched keywords with counts
-            match_details = []
-            total_word_count = 0
-            
-            for keyword in all_matched_keywords:
-                if isinstance(exact_matches, dict) and keyword in exact_matches:
-                    count = exact_matches[keyword]
-                    match_details.append(f"{keyword} ({count})")
-                    total_word_count += count
-                else:
-                    match_details.append(keyword)
-            
+        # Display exact matches
+        if exact_keywords and exact_matches:
             # Show total word count prominently
+            total_word_count = sum(count for keyword, count in exact_matches.items() 
+                                 if keyword in exact_keywords and isinstance(count, int))
+            
             if total_word_count > 0:
-                count_label = ctk.CTkLabel(
+                exact_count_label = ctk.CTkLabel(
                     match_summary_frame,
-                    text=f"Total Words Found: {total_word_count}",
+                    text=f"Exact Matches: {total_word_count} words found",
                     font=ctk.CTkFont(size=12, weight="bold"),
-                    fg_color="#4a90e2",
+                    fg_color="#28a745",
                     text_color="white",
                     corner_radius=4,
                     height=24
                 )
-                count_label.pack(side="top", anchor="w", padx=8, pady=(6, 2))
+                exact_count_label.pack(side="top", anchor="w", padx=8, pady=(6, 2))
+                
+                # Show exact keyword breakdown (simple: word and count only)
+                exact_details = []
+                for keyword in exact_keywords:
+                    if keyword in exact_matches:
+                        count = exact_matches[keyword]
+                        exact_details.append(f"'{keyword}' ({count} times)")
+                    else:
+                        exact_details.append(f"'{keyword}'")
+                
+                exact_text = "Exact matches: " + ", ".join(exact_details)
+                exact_label = ctk.CTkLabel(
+                    match_summary_frame,
+                    text=exact_text,
+                    font=ctk.CTkFont(size=11),
+                    text_color="#333333",
+                    anchor="w",
+                    wraplength=700
+                )
+                exact_label.pack(anchor="w", padx=8, pady=(2, 4))
+        
+        # Display fuzzy matches with enhanced formatting
+        if fuzzy_keywords and fuzzy_matches:
+            # Calculate total fuzzy score
+            total_fuzzy_score = sum(score for keyword, score in fuzzy_matches.items() 
+                                  if keyword in fuzzy_keywords and isinstance(score, (int, float)))
             
-            # Show keyword breakdown
-            matches_text = "Keywords: " + ", ".join(match_details)
-            matches_label = ctk.CTkLabel(
-                match_summary_frame,
-                text=matches_text,
-                font=ctk.CTkFont(size=11),
-                text_color="#333333",
-                anchor="w",
-                wraplength=700
-            )
-            matches_label.pack(anchor="w", padx=8, pady=(2, 6))
-        elif all_matched_keywords:
-            # Fallback if no exact_matches dict but we have keywords
-            matches_text = "Keywords Found: " + ", ".join(all_matched_keywords)
-            matches_label = ctk.CTkLabel(
-                match_summary_frame,
-                text=matches_text,
-                font=ctk.CTkFont(size=11),
-                text_color="#333333",
-                anchor="w",
-                wraplength=700
-            )
-            matches_label.pack(anchor="w", padx=8, pady=6)
-        else:
-            # No matches found
+            if total_fuzzy_score > 0:
+                fuzzy_count_label = ctk.CTkLabel(
+                    match_summary_frame,
+                    text=f"Fuzzy Matches: {total_fuzzy_score:.2f} similarity score",
+                    font=ctk.CTkFont(size=12, weight="bold"),
+                    fg_color="#ffc107",
+                    text_color="#333333",
+                    corner_radius=4,
+                    height=24
+                )
+                fuzzy_count_label.pack(side="top", anchor="w", padx=8, pady=(2, 2))
+                
+                # Create a sub-frame for fuzzy match details
+                fuzzy_details_frame = ctk.CTkFrame(
+                    match_summary_frame,
+                    fg_color="transparent"
+                )
+                fuzzy_details_frame.pack(fill="x", padx=8, pady=(4, 6))
+                
+                # Show each fuzzy match on a separate line for better readability
+                for keyword in fuzzy_keywords:
+                    if keyword in fuzzy_matches:
+                        score = fuzzy_matches[keyword]
+                        
+                        if (fuzzy_matches_detail and keyword in fuzzy_matches_detail and
+                            fuzzy_matches_detail[keyword]):
+                            # Get the best match from the fuzzy details
+                            best_match = max(fuzzy_matches_detail[keyword], key=lambda x: x[1])
+                            similar_word = best_match[0]
+                            similarity_score = best_match[1]
+                            
+                            # Create a clear comparison display
+                            match_text = f"• Searched: '{keyword}' → Found: '{similar_word}' (similarity: {similarity_score:.2f})"
+                        else:
+                            # Fallback if detailed match info is not available
+                            match_text = f"• '{keyword}' (similarity: {score:.2f})"
+                        
+                        match_label = ctk.CTkLabel(
+                            fuzzy_details_frame,
+                            text=match_text,
+                            font=ctk.CTkFont(size=10),
+                            text_color="#555555",
+                            anchor="w"
+                        )
+                        match_label.pack(anchor="w", pady=1)
+                    else:
+                        # Show keywords with no matches
+                        no_match_label = ctk.CTkLabel(
+                            fuzzy_details_frame,
+                            text=f"• '{keyword}' (no fuzzy match found)",
+                            font=ctk.CTkFont(size=10),
+                            text_color="#888888",
+                            anchor="w"
+                        )
+                        no_match_label.pack(anchor="w", pady=1)
+        
+        # Fallback for legacy format
+        if not exact_keywords and not fuzzy_keywords and all_matched_keywords:
+            # Legacy display for backwards compatibility
+            if exact_matches:
+                match_details = []
+                total_word_count = 0
+                
+                for keyword in all_matched_keywords:
+                    if isinstance(exact_matches, dict) and keyword in exact_matches:
+                        count = exact_matches[keyword]
+                        match_details.append(f"'{keyword}' ({count} times)")
+                        total_word_count += count
+                    else:
+                        match_details.append(f"'{keyword}'")
+                
+                if total_word_count > 0:
+                    count_label = ctk.CTkLabel(
+                        match_summary_frame,
+                        text=f"Total Words Found: {total_word_count}",
+                        font=ctk.CTkFont(size=12, weight="bold"),
+                        fg_color="#4a90e2",
+                        text_color="white",
+                        corner_radius=4,
+                        height=24
+                    )
+                    count_label.pack(side="top", anchor="w", padx=8, pady=(6, 2))
+                
+                matches_text = "Keywords: " + ", ".join(match_details)
+                matches_label = ctk.CTkLabel(
+                    match_summary_frame,
+                    text=matches_text,
+                    font=ctk.CTkFont(size=11),
+                    text_color="#333333",
+                    anchor="w",
+                    wraplength=700
+                )
+                matches_label.pack(anchor="w", padx=8, pady=(2, 6))
+            else:
+                matches_text = "Keywords found: " + ", ".join(all_matched_keywords)
+                matches_label = ctk.CTkLabel(
+                    match_summary_frame,
+                    text=matches_text,
+                    font=ctk.CTkFont(size=11),
+                    text_color="#333333",
+                    anchor="w",
+                    wraplength=700
+                )
+                matches_label.pack(anchor="w", padx=8, pady=6)
+        
+        # Show message if no matches found
+        if not all_matched_keywords:
             no_matches_label = ctk.CTkLabel(
                 match_summary_frame,
                 text="No keyword matches found",
