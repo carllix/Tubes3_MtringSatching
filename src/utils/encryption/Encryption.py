@@ -1,74 +1,54 @@
-# src/utils/encryption.py (Bonus Implementation)
-import hashlib
-import os
-import base64
-from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+def F(r: str, k: str) -> str:
+    return ''.join(chr((ord(c) ^ ord(k[i % len(k)])) % 256) for i, c in enumerate(r))
 
-class SimpleEncryption:
-    """Simple encryption utility for applicant data"""
-    
-    def __init__(self, password: str = None):
-        if password is None:
-            password = "ats_default_key_2024"  # Default key (not secure for production)
-        
-        self.password = password.encode()
-        self.salt = b'salt_1234567890'  # Fixed salt (not secure for production)
-        
-    def _get_key(self):
-        """Generate encryption key from password"""
-        kdf = PBKDF2HMAC(
-            algorithm=hashes.SHA256(),
-            length=32,
-            salt=self.salt,
-            iterations=100000,
-        )
-        key = base64.urlsafe_b64encode(kdf.derive(self.password))
-        return key
-    
-    def encrypt(self, data: str) -> str:
-        """Encrypt string data"""
-        if not data:
-            return ""
-        
-        try:
-            key = self._get_key()
-            f = Fernet(key)
-            encrypted_data = f.encrypt(data.encode())
-            return base64.urlsafe_b64encode(encrypted_data).decode()
-        except Exception as e:
-            print(f"Encryption error: {e}")
-            return data  # Return original data if encryption fails
-    
-    def decrypt(self, encrypted_data: str) -> str:
-        """Decrypt string data"""
-        if not encrypted_data:
-            return ""
-        
-        try:
-            key = self._get_key()
-            f = Fernet(key)
-            decoded_data = base64.urlsafe_b64decode(encrypted_data.encode())
-            decrypted_data = f.decrypt(decoded_data)
-            return decrypted_data.decode()
-        except Exception as e:
-            print(f"Decryption error: {e}")
-            return encrypted_data  # Return original data if decryption fails
+def feistelRound(l, r, key, rounds=4):
+    for i in range(rounds):
+        new_l = r
+        f_out = F(r, key[i % len(key)]) 
+        new_r = ''.join(chr(ord(l[j]) ^ ord(f_out[j])) for j in range(len(l)))
+        l, r = new_l, new_r
+    return l + r 
 
-class HashEncryption:
-    """Hash-based encryption (one-way) for sensitive data"""
-    
-    @staticmethod
-    def hash_data(data: str, salt: str = None) -> str:
-        """Create hash of data with optional salt"""
-        if salt is None:
-            salt = "ats_salt_2024"
-        
-        combined = f"{data}{salt}"
-        return hashlib.sha256(combined.encode()).hexdigest()
-    
-    @staticmethod
-    def verify_hash(data: str, hashed_data: str, salt: str = None) -> bool:
-        """Verify data against hash"""
-        return HashEncryption.hash_data(data, salt) == hashed_data
+def encrypt(plaintext: str, key: str) -> str:
+    while len(plaintext) % 8 != 0:
+        plaintext += '\0' 
+    ciphertext = ''
+    for i in range(0, len(plaintext), 8):
+        block = plaintext[i:i+8]
+        l, r = block[:4], block[4:]
+        encrypted = feistelRound(l, r, key)
+        ciphertext += encrypted
+    return ciphertext
+
+def decrypt(ciphertext: str, key: str) -> str:
+    def reverse_rounds(l, r, key, rounds=4):
+        for i in reversed(range(rounds)):
+            new_r = l
+            f_out = F(new_r, key[i % len(key)])
+            new_l = ''.join(chr(ord(r[j]) ^ ord(f_out[j])) for j in range(len(r)))
+            l, r = new_l, new_r
+        return l + r
+
+    plaintext = ''
+    for i in range(0, len(ciphertext), 8):
+        block = ciphertext[i:i+8]
+        l, r = block[:4], block[4:]
+        decrypted = reverse_rounds(l, r, key)
+        plaintext += decrypted
+    return plaintext.rstrip('\0') 
+
+if __name__ == "__main__":
+    plaintext = "john.doe@gmail.com"
+    key = "mysecretkey"
+
+    print("Original plaintext:", plaintext)
+
+    encrypted = encrypt(plaintext, key)
+    print("Encrypted (raw chars):", encrypted)
+    print("Encrypted (as bytes):", encrypted.encode('utf-8'))
+
+    decrypted = decrypt(encrypted, key)
+    print("Decrypted:", decrypted)
+
+    assert decrypted == plaintext, "Decryption does not match original!"
+    print("Encryption-Decryption Test Passed!")
