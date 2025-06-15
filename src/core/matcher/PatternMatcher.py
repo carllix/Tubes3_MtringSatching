@@ -65,6 +65,7 @@ class PatternMatcher:
                 count = self.kmp.count_occurrences(text, keyword_clean)
             elif algorithm.upper() == "BM":
                 count = self.bm.count_occurrences(text, keyword_clean)
+            else:
                 raise ValueError(f"Unknown algorithm: {algorithm}")
             
             results[keyword] = count

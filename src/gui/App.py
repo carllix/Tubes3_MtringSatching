@@ -477,7 +477,8 @@ class App:
                 self.root.after(0, lambda: self.display_results(results, timing_info, keywords, algorithm))
                 
             except Exception as e:
-                self.root.after(0, lambda: self.handle_search_error(str(e)))
+                error_msg = str(e)
+                self.root.after(0, lambda: self.handle_search_error(error_msg))
             finally:
                 self.root.after(0, self.reset_search_state)
         
@@ -755,7 +756,6 @@ class App:
             messagebox.showwarning("File Not Found", f"CV file path not available for {name}")
             return
         
-        # Convert relative path to absolute path
         if not cv_path.startswith('/'):
             from config.AppConfig import AppConfig
             if cv_path.startswith('cv_files/'):
@@ -765,13 +765,11 @@ class App:
         else:
             full_cv_path = cv_path
         
-        # Check if file exists
         if not os.path.exists(full_cv_path):
             messagebox.showerror("File Not Found", f"CV file not found for {name}:\n{full_cv_path}")
             return
         
         try:
-            # Try to open with default system application
             if os.name == 'nt':  # Windows
                 os.startfile(full_cv_path)
             elif os.name == 'posix':  # macOS and Linux
@@ -782,15 +780,12 @@ class App:
     def run(self):
         """Run the application with enhanced error handling"""
         try:
-            # Set window icon if available
             try:
-                # You can add an icon file here
                 # self.root.iconbitmap("icon.ico")
                 pass
             except:
                 pass
             
-            # Center window on screen
             self.root.update_idletasks()
             width = self.root.winfo_width()
             height = self.root.winfo_height()
@@ -798,7 +793,6 @@ class App:
             y = (self.root.winfo_screenheight() // 2) - (height // 2)
             self.root.geometry(f"{width}x{height}+{x}+{y}")
             
-            # Start the main loop
             self.root.mainloop()
             
         except KeyboardInterrupt:
@@ -814,7 +808,6 @@ class App:
                 except:
                     pass
 
-# Simple CV Service for demo mode
 class SimpleCVService:
     def __init__(self, demo_data, debug=False):
         self.demo_data = demo_data
