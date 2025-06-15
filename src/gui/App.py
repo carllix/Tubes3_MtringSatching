@@ -79,8 +79,6 @@ class App:
             "Sarah_Wilson_CV.pdf": "DevOps Engineer with experience in Docker, Kubernetes, AWS, Python, Linux, CI/CD, Terraform Infrastructure Automation Deployment",
             "David_Brown_CV.pdf": "Mobile Developer with expertise in React Native, Swift, Kotlin, Java, iOS, Android development Mobile Applications Programming"
         }
-        # Instead of setting cv_service to None, create a SimpleCVService with demo data
-        self.cv_service = SimpleCVService(self.demo_cv_data, debug=False)
     
     def setup_gui(self):
         """Setup the main GUI components"""

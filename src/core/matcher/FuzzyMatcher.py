@@ -45,6 +45,39 @@ class FuzzyMatcher:
                 results[keyword] = matches
         
         return results
+
+    def get_best_matches(self, keywords: List[str], text: str) -> Dict[str, List[Tuple[str, float]]]:
+        """
+        Finds the best fuzzy matches for keywords, including all ties.
+
+        If multiple words share the same highest similarity score for a given
+        keyword, all of them are returned.
+
+        Args:
+            keywords: A list of keywords to search for.
+            text: The text to search within.
+
+        Returns:
+            A dictionary where each key is a keyword and the value is a list
+            of its best matches, each as a (word, score) tuple.
+        """
+        all_matches = self.fuzzy_match_keywords(keywords, text)
+        best_matches_result = {}
+
+        for keyword, matches in all_matches.items():
+            if not matches:
+                continue
+
+            # The first match has the highest score because find_similar_words sorts them
+            highest_score = matches[0][1]
+
+            # Filter for all other matches that have the same top score
+            top_matches = [match for match in matches if match[1] == highest_score]
+            
+            if top_matches:
+                best_matches_result[keyword] = top_matches
+                
+        return best_matches_result
     
     def calculate_fuzzy_score(self, keywords: List[str], text: str) -> Dict[str, float]:
         """Calculate fuzzy matching score for each keyword

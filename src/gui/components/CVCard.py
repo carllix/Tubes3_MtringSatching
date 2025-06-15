@@ -213,13 +213,27 @@ class CVCard(ctk.CTkFrame):
                         
                         if (fuzzy_matches_detail and keyword in fuzzy_matches_detail and
                             fuzzy_matches_detail[keyword]):
-                            # Get the best match from the fuzzy details
-                            best_match = max(fuzzy_matches_detail[keyword], key=lambda x: x[1])
-                            similar_word = best_match[0]
-                            similarity_score = best_match[1]
-                            
-                            # Create a clear comparison display
-                            match_text = f"• Searched: '{keyword}' → Found: '{similar_word}' (similarity: {similarity_score:.2f})"
+                            # Get all matches with the highest score
+                            matches = fuzzy_matches_detail[keyword]
+                            if isinstance(matches, list) and len(matches) > 0:
+                                # Find the highest score
+                                highest_score = max(match[1] for match in matches)
+                                # Get all matches with that score
+                                best_matches = [match for match in matches if match[1] == highest_score]
+                                
+                                if len(best_matches) == 1:
+                                    # Single best match
+                                    similar_word = best_matches[0][0]
+                                    similarity_score = best_matches[0][1]
+                                    match_text = f"• Searched: '{keyword}' → Found: '{similar_word}' (similarity: {similarity_score:.2f})"
+                                else:
+                                    # Multiple matches with same score
+                                    words = ", ".join([f"'{match[0]}'" for match in best_matches])
+                                    similarity_score = best_matches[0][1]
+                                    match_text = f"• Searched: '{keyword}' → Found: {words} (similarity: {similarity_score:.2f})"
+                            else:
+                                # Fallback if detailed match info is not in expected format
+                                match_text = f"• '{keyword}' (similarity: {score:.2f})"
                         else:
                             # Fallback if detailed match info is not available
                             match_text = f"• '{keyword}' (similarity: {score:.2f})"
