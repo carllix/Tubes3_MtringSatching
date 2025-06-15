@@ -51,13 +51,13 @@ class App:
         """Initialize backend services"""
         self.database_connected = False
         # Initialize pattern matcher for both database and demo modes
-        self.pattern_matcher = PatternMatcher(fuzzy_threshold=0.6, debug=True)
+        self.pattern_matcher = PatternMatcher(fuzzy_threshold=0.6)
         
         try:
             self.db_manager = DatabaseManager()
             # Try to connect to database
             if self.db_manager.connect():
-                self.cv_service = CVService(self.db_manager, debug=False)
+                self.cv_service = CVService(self.db_manager)
                 self.database_connected = True
                 print("✅ Database connected successfully")
             else:
