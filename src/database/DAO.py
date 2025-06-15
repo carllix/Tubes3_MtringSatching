@@ -106,6 +106,21 @@ class ApplicantDAO:
         finally:
             cursor.close()
 
+    def getAllRawApplicants(self) -> List[dict]:
+        connection = self.dbManager.get_connection()
+        cursor = connection.cursor(dictionary=True)
+
+        try:
+            query = "SELECT * FROM ApplicantProfile"
+            cursor.execute(query)
+            results = cursor.fetchall()
+            return results
+        except Exception as e:
+            raise
+        finally:
+            cursor.close()
+
+
 
 class ApplicationDAO:
     def __init__(self, dbManager: DatabaseManager):
