@@ -9,20 +9,26 @@ class SummaryView(ctk.CTkToplevel):
     def __init__(self, parent, result: Dict[str, Any]):
         super().__init__(parent)
         
-        # Professional minimalist color scheme
+        # Professional color scheme matching main app and components
         self.colors = {
-            'background': '#0f0f0f',           # Deep black background
-            'surface': '#1a1a1a',             # Dark surface
-            'surface_variant': '#262626',      # Slightly lighter surface
-            'primary': '#3b82f6',             # Blue accent
-            'primary_variant': '#2563eb',      # Darker blue
-            'text_primary': '#ffffff',         # White text
-            'text_secondary': '#b3b3b3',       # Light gray text
-            'text_muted': '#737373',           # Muted gray
-            'border': '#404040',              # Border color
-            'skill_bg': '#1e3a8a',            # Skill bubble background
-            'skill_hover': '#1d4ed8',         # Skill bubble hover
-            'card_hover': '#2a2a2a'           # Card hover state
+            'primary': '#1f538d',
+            'secondary': '#14375e',
+            'accent': '#36719e',
+            'surface': '#212121',
+            'background': '#1a1a1a',
+            'surface_variant': '#2b2b2b',      # Matching CVCard's card_bg
+            'surface_light': '#404040',        # For borders and lighter surfaces
+            'text_primary': '#ffffff',
+            'text_secondary': '#b0b0b0',
+            'text_muted': '#808080',
+            'success': '#4caf50',
+            'warning': '#ff9800',
+            'error': '#f44336',
+            'fuzzy': '#9c27b0',
+            'border': '#404040',
+            'hover': '#3a3a3a',
+            'skill_bg': '#1f538d',            # Using primary color for skill bubbles
+            'skill_hover': '#36719e'          # Using accent color for hover
         }
         
         self.result = result
@@ -32,11 +38,11 @@ class SummaryView(ctk.CTkToplevel):
         self.setup_content()
     
     def setup_theme(self):
-        """Configure the professional dark theme"""
+        """Configure the professional dark theme matching main app"""
         # Set the global appearance mode
         ctk.set_appearance_mode("dark")
         
-        # Configure window background
+        # Configure window background to match main app
         self.configure(fg_color=self.colors['background'])
     
     def setup_window(self):
@@ -53,7 +59,7 @@ class SummaryView(ctk.CTkToplevel):
     
     def setup_content(self):
         """Setup the content of the summary window with professional styling"""
-        # Main container with professional styling
+        # Main container with professional styling matching main app
         main_frame = ctk.CTkFrame(
             self,
             fg_color=self.colors['surface'],
@@ -61,7 +67,7 @@ class SummaryView(ctk.CTkToplevel):
         )
         main_frame.pack(fill="both", expand=True, padx=0, pady=0)
         
-        # Header section with gradient-like effect
+        # Header section with gradient-like effect matching main app
         header_frame = ctk.CTkFrame(
             main_frame,
             fg_color=self.colors['primary'],
@@ -94,7 +100,7 @@ class SummaryView(ctk.CTkToplevel):
         )
         subtitle_label.pack(pady=(0, 15))  # More bottom padding
         
-        # Content area with padding
+        # Content area with padding matching main app layout
         content_frame = ctk.CTkFrame(
             main_frame,
             fg_color=self.colors['surface'],
@@ -102,13 +108,15 @@ class SummaryView(ctk.CTkToplevel):
         )
         content_frame.pack(fill="both", expand=True, padx=20, pady=20)
         
-        # Create scrollable frame with professional styling
+        # Create scrollable frame with professional styling matching main app
         scrollable_frame = ctk.CTkScrollableFrame(
             content_frame,
             fg_color=self.colors['background'],
             corner_radius=8,
             border_width=1,
-            border_color=self.colors['border']
+            border_color=self.colors['border'],
+            scrollbar_button_color="gray40",
+            scrollbar_button_hover_color="gray50"
         )
         scrollable_frame.pack(fill="both", expand=True)
         
@@ -129,7 +137,7 @@ class SummaryView(ctk.CTkToplevel):
         if accomplishments and accomplishments[0] != "No accomplishments information found":
             self.create_accomplishments_section(scrollable_frame)
         
-        # Action buttons frame
+        # Action buttons frame matching main app styling
         button_frame = ctk.CTkFrame(
             main_frame,
             fg_color=self.colors['surface'],
@@ -137,7 +145,7 @@ class SummaryView(ctk.CTkToplevel):
         )
         button_frame.pack(fill="x", padx=20, pady=(0, 20))
         
-        # Close button with hover effect
+        # Close button with hover effect matching main app styling
         close_btn = ctk.CTkButton(
             button_frame,
             text="Close",
@@ -145,7 +153,7 @@ class SummaryView(ctk.CTkToplevel):
             height=40,
             font=ctk.CTkFont(size=14, weight="bold"),
             fg_color=self.colors['primary'],
-            hover_color=self.colors['primary_variant'],
+            hover_color=self.colors['accent'],
             text_color=self.colors['text_primary'],
             corner_radius=8,
             command=self.destroy

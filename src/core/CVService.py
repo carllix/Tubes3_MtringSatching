@@ -53,7 +53,7 @@ class CVService:
                 else:
                     full_cv_path = cv_path
                 
-                print(f"📁 Checking CV path: {full_cv_path}")
+                print(f"Checking CV path: {full_cv_path}")
                 
                 if os.path.exists(full_cv_path):
                     text = self.cv_processor.extract_text_from_pdf(full_cv_path)
