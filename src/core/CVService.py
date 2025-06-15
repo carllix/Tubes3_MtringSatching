@@ -10,21 +10,15 @@ from src.config.AppConfig import AppConfig
 class CVService:
     """Main service for CV processing and pattern matching operations"""
     
-    def __init__(self, db_manager: DatabaseManager, debug: bool = False):
+    def __init__(self, db_manager: DatabaseManager):
         self.db_manager = db_manager
         self.cv_processor = CVProcessor()
         self.regex_extractor = RegexExtractor()
-        self.pattern_matcher = PatternMatcher(debug=debug)
+        self.pattern_matcher = PatternMatcher()
         self.application_dao = ApplicationDAO(db_manager)
-        self.debug = debug
         
-        # Cache for CV texts (in-memory storage as per requirements)
+        # Cache  CV texts (saat pertama kali load)
         self.cv_texts_cache: Dict[str, str] = {}
-    
-    def set_debug(self, debug: bool):
-        """Enable or disable debug output"""
-        self.debug = debug
-        self.pattern_matcher.set_debug(debug)
     
     def load_all_cv_texts(self) -> bool:
         """Load all CV texts from database CV paths into memory
@@ -33,11 +27,10 @@ class CVService:
             True if successful, False otherwise
         """
         try:
-            # Get all applications with their CV paths
             applications_with_profiles = self.application_dao.getApplicationsWithProfiles()
             
             if not applications_with_profiles:
-                print("⚠️  No applications found in database. Please run the seeder first.")
+                print("No applications found in database. Please run the seeder first.")
                 return False
             
             cv_texts = {}
@@ -51,39 +44,36 @@ class CVService:
                     print(f"⚠️  No CV path for application ID {detail.detail_id}")
                     continue
                 
-                # Create full path - handle both absolute and relative paths
+                # handle absolute/relative paths
                 if not os.path.isabs(cv_path):
-                    # If it starts with 'cv_files/', use BASE_DATA_PATH
                     if cv_path.startswith('cv_files/'):
                         full_cv_path = os.path.join(AppConfig.BASE_DATA_PATH, cv_path)
                     else:
-                        # Otherwise, assume it's under cv_files directory
                         full_cv_path = os.path.join(AppConfig.BASE_DATA_PATH, 'cv_files', cv_path)
                 else:
                     full_cv_path = cv_path
                 
-                print(f"📁 Checking CV path: {full_cv_path}")
+                print(f"Checking CV path: {full_cv_path}")
                 
-                # Extract text from PDF
                 if os.path.exists(full_cv_path):
                     text = self.cv_processor.extract_text_from_pdf(full_cv_path)
                     if text:
-                        # Use a unique key combining detail_id and filename
                         cv_key = f"{detail.detail_id}_{os.path.basename(cv_path)}"
                         cv_texts[cv_key] = text
                         processed_count += 1
-                        print(f"✅ Loaded CV: {cv_key} ({len(text)} characters)")
+                        print(f"Loaded CV: {cv_key} ({len(text)} characters)")
+                        # print(cv_texts[cv_key])  # Debug output of the text
                     else:
-                        print(f"❌ Failed to extract text from: {full_cv_path}")
+                        print(f"Failed to extract text from: {full_cv_path}")
                 else:
-                    print(f"❌ CV file not found: {full_cv_path}")
+                    print(f"CV file not found: {full_cv_path}")
             
             self.cv_texts_cache = cv_texts
-            print(f"🎉 Successfully loaded {processed_count} CV texts into memory")
+            print(f"Successfully loaded {processed_count} CV texts into memory")
             return processed_count > 0
             
         except Exception as e:
-            print(f"💥 Error loading CV texts: {e}")
+            print(f"Error loading CV texts: {e}")
             import traceback
             traceback.print_exc()
             return False
@@ -103,14 +93,7 @@ class CVService:
             print("No CV texts loaded. Call load_all_cv_texts() first.")
             return [], {}
         
-        if self.debug:
-            print(f"\n🚀 STARTING CV SEARCH")
-            print(f"📊 CVs in cache: {len(self.cv_texts_cache)}")
-            print(f"🔍 Keywords: {keywords}")
-            print(f"⚙️  Algorithm: {algorithm}")
-            print(f"🏆 Top results: {top_n}")
-        
-        # Perform pattern matching search
+        # Pattern matching search
         results, timing_info = self.pattern_matcher.search_multiple_cvs(
             keywords, self.cv_texts_cache, algorithm, top_n
         )
@@ -119,7 +102,6 @@ class CVService:
         enhanced_results = []
         applications_with_profiles = self.application_dao.getApplicationsWithProfiles()
         
-        # Create a mapping for quick lookup
         app_lookup = {}
         for profile, detail in applications_with_profiles:
             cv_key = f"{detail.detail_id}_{os.path.basename(detail.cv_path)}"
@@ -129,7 +111,6 @@ class CVService:
             cv_file = result['cv_file']
             if cv_file in app_lookup:
                 profile, detail = app_lookup[cv_file]
-                # Convert dataclass to dict for GUI compatibility
                 result['profile'] = {
                     'applicant_id': profile.applicant_id,
                     'first_name': profile.first_name,
@@ -144,23 +125,12 @@ class CVService:
                     'application_role': detail.application_role,
                     'cv_path': detail.cv_path
                 }
-                # Add CV text for summary view
                 result['cv_text'] = self.cv_texts_cache.get(cv_file, '')
                 
-                # Keep original for backward compatibility
                 result['applicant_profile'] = profile
                 result['application_detail'] = detail
-                
-                if self.debug:
-                    print(f"\n👤 {profile.first_name} {profile.last_name}")
-                    print(f"📧 Role: {detail.application_role}")
-                    print(f"📄 CV: {cv_file}")
-                    print(f"🎯 Matched Keywords: {result['matched_keywords']}")
             
             enhanced_results.append(result)
-        
-        if self.debug:
-            print(f"\n✨ Search completed! Found {len(enhanced_results)} results.")
         
         return enhanced_results, timing_info
     
