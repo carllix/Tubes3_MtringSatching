@@ -67,21 +67,6 @@ class App:
             print(f"❌ Database error: {e}")
             self.setup_demo_mode()
     
-    def setup_demo_mode(self):
-        """Setup demo mode when database is not available"""
-        print("🔧 Setting up demo mode...")
-        self.cv_service = None
-        # Create some demo data for testing the GUI with more varied content for fuzzy matching
-        self.demo_cv_data = {
-            "John_Doe_CV.pdf": "Software Engineer with 5 years experience in Python, Java, React, Node.js, SQL, Git, AWS Cloud Computing Machine Learning Programming Development",
-            "Jane_Smith_CV.pdf": "Data Scientist with expertise in Python, R, Machine Learning, TensorFlow, Pandas, SQL, Statistics Deep Learning Analytics Visualization",
-            "Mike_Johnson_CV.pdf": "Full Stack Developer skilled in JavaScript, React, Node.js, MongoDB, Express, HTML, CSS Frontend Backend Development Web Applications",
-            "Sarah_Wilson_CV.pdf": "DevOps Engineer with experience in Docker, Kubernetes, AWS, Python, Linux, CI/CD, Terraform Infrastructure Automation Deployment",
-            "David_Brown_CV.pdf": "Mobile Developer with expertise in React Native, Swift, Kotlin, Java, iOS, Android development Mobile Applications Programming"
-        }
-        # Instead of setting cv_service to None, create a SimpleCVService with demo data
-        self.cv_service = SimpleCVService(self.demo_cv_data, debug=False)
-    
     def setup_gui(self):
         """Setup the main GUI components"""
         # Configure grid weights for responsive layout
