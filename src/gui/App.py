@@ -1,5 +1,3 @@
-# ATS CV Checker GUI - Professional Version
-
 import customtkinter as ctk
 import threading
 import subprocess
@@ -20,21 +18,17 @@ from src.core.matcher.PatternMatcher import PatternMatcher
 
 class App:
     def __init__(self):
-        # Setup global appearance with dark theme for professional look
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
 
-        # Initialize backend services
         self.setup_backend()
         
-        # Create root window
         self.root = ctk.CTk()
         self.root.geometry("1600x900")
         self.root.title("ATS CV Checker - Pattern Matching System")
         self.root.resizable(True, True)
         self.root.minsize(1200, 700)
         
-        # Color scheme for professional look
         self.colors = {
             'primary': '#1f538d',
             'secondary': '#14375e',
@@ -48,27 +42,21 @@ class App:
             'error': '#f44336'
         }
         
-        # Initialize variables
         self.algorithm_var = ctk.StringVar(value="KMP")
         self.num_matches_var = ctk.IntVar(value=5)
         self.is_searching = False
         
-        # Setup GUI components
         self.setup_gui()
         
-        # Bind keyboard shortcuts
         self.setup_keyboard_shortcuts()
         
-        # Load CV data in background
         self.load_cv_data()
         
-        # Add hover effects
         self.setup_hover_effects()
     
     def setup_backend(self):
         """Initialize backend services"""
         self.database_connected = False
-        # Initialize pattern matcher for both database and demo modes
         self.pattern_matcher = PatternMatcher(fuzzy_threshold=0.6)
         
         try:
@@ -76,17 +64,17 @@ class App:
             if self.db_manager.connect():
                 self.cv_service = CVService(self.db_manager)
                 self.database_connected = True
-                print("✅ Database connected successfully")
+                print("Database connected successfully")
             else:
-                print("❌ Database connection failed")
+                print("Database connection failed")
                 self.setup_demo_mode()
         except Exception as e:
-            print(f"❌ Database error: {e}")
+            print(f"Database error: {e}")
             self.setup_demo_mode()
     
     def setup_demo_mode(self):
         """Setup demo mode when database is not available"""
-        print("🔧 Setting up demo mode...")
+        print("Setting up demo mode...")
         self.demo_cv_data = {
             "John_Doe_CV.pdf": "Software Engineer with 5 years experience in Python, Java, React, Node.js, SQL, Git, AWS",
             "Jane_Smith_CV.pdf": "Data Scientist with expertise in Python, R, Machine Learning, TensorFlow, Pandas, SQL, Statistics",
@@ -98,22 +86,19 @@ class App:
     
     def setup_gui(self):
         """Setup the main GUI components"""
-        # Configure grid weights for responsive layout
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_columnconfigure(0, weight=1)
         
-        # Main container
         main_container = ctk.CTkFrame(self.root, fg_color="transparent")
         main_container.grid(row=0, column=0, sticky="nsew", padx=15, pady=15)
         main_container.grid_rowconfigure(1, weight=1)
-        main_container.grid_columnconfigure(1, weight=1)
+        main_container.grid_columnconfigure(0, weight=1)  
+        main_container.grid_columnconfigure(1, weight=2) 
         
-        # Header with gradient-like effect
         header_frame = ctk.CTkFrame(main_container, height=80, corner_radius=12)
         header_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 20))
         header_frame.grid_propagate(False)
         
-        # Title with better typography
         title_label = ctk.CTkLabel(
             header_frame,
             text="ATS CV Checker",
@@ -122,7 +107,6 @@ class App:
         )
         title_label.pack(side="left", padx=25, pady=20)
         
-        # Connection status indicator
         self.connection_status = ctk.CTkLabel(
             header_frame,
             text="● Connected" if self.database_connected else "● Demo Mode",
@@ -131,22 +115,18 @@ class App:
         )
         self.connection_status.pack(side="right", padx=25, pady=20)
         
-        # Left panel - Search controls
-        left_panel = ctk.CTkFrame(main_container, width=500, corner_radius=12)
+        left_panel = ctk.CTkFrame(main_container, corner_radius=12)
         left_panel.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
-        left_panel.grid_propagate(False)
+        left_panel.grid_propagate(True)
         
-        # Right panel - Results
         right_panel = ctk.CTkFrame(main_container, corner_radius=12)
         right_panel.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
         right_panel.grid_rowconfigure(1, weight=1)
         right_panel.grid_columnconfigure(0, weight=1)
         
-        # Setup sections
         self.setup_search_section(left_panel)
         self.setup_results_section(right_panel)
         
-        # Status bar with modern design
         status_frame = ctk.CTkFrame(main_container, height=40, corner_radius=8)
         status_frame.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(20, 0))
         status_frame.grid_propagate(False)
@@ -159,7 +139,6 @@ class App:
         )
         self.status_label.pack(pady=12)
         
-        # Progress bar (hidden by default)
         self.progress_bar = ctk.CTkProgressBar(status_frame, height=3, corner_radius=2)
         self.progress_bar.pack(fill="x", padx=20, pady=(0, 8))
         self.progress_bar.pack_forget()  # Hide initially
@@ -169,7 +148,6 @@ class App:
         parent.grid_rowconfigure(0, weight=1)
         parent.grid_columnconfigure(0, weight=1)
         
-        # Header section
         header_section = ctk.CTkFrame(parent, corner_radius=8, height=60)
         header_section.pack(fill="x", padx=15, pady=(15, 10))
         header_section.pack_propagate(False)
@@ -181,7 +159,6 @@ class App:
             text_color=self.colors['text_primary']
         ).pack(pady=18)
         
-        # Scrollable container with gray scrollbar
         scrollable_search = ctk.CTkScrollableFrame(
             parent, 
             corner_radius=8,
@@ -190,11 +167,9 @@ class App:
         )
         scrollable_search.pack(fill="both", expand=True, padx=15, pady=(0, 15))
         
-        # Keywords input section
         keywords_section = ctk.CTkFrame(scrollable_search, corner_radius=8)
         keywords_section.pack(fill="x", pady=(10, 15))
         
-        # Section header
         keywords_header = ctk.CTkFrame(keywords_section, corner_radius=6, height=35)
         keywords_header.pack(fill="x", padx=15, pady=(15, 8))
         keywords_header.pack_propagate(False)
@@ -206,7 +181,6 @@ class App:
             text_color=self.colors['text_primary']
         ).pack(pady=8)
         
-        # Enhanced entry with better styling
         self.keywords_entry = ctk.CTkEntry(
             keywords_section,
             placeholder_text="Enter keywords separated by commas (e.g., python, java, react)",
@@ -217,11 +191,9 @@ class App:
         )
         self.keywords_entry.pack(fill="x", padx=15, pady=(0, 15))
         
-        # Algorithm selection with modern radio buttons
         algorithm_section = ctk.CTkFrame(scrollable_search, corner_radius=8)
         algorithm_section.pack(fill="x", pady=(0, 15))
         
-        # Section header
         algo_header = ctk.CTkFrame(algorithm_section, corner_radius=6, height=35)
         algo_header.pack(fill="x", padx=15, pady=(15, 10))
         algo_header.pack_propagate(False)
@@ -233,7 +205,6 @@ class App:
             text_color=self.colors['text_primary']
         ).pack(pady=8)
         
-        # Algorithm options with descriptions
         algorithms = [
             ("KMP", "Knuth-Morris-Pratt", "Optimal for long patterns"),
             ("BM", "Boyer-Moore", "Fast for large text searches"),
@@ -263,11 +234,9 @@ class App:
             )
             desc_label.pack(side="right", padx=15, pady=10)
         
-        # Number of matches with modern slider
         matches_section = ctk.CTkFrame(scrollable_search, corner_radius=8)
         matches_section.pack(fill="x", pady=(0, 15))
         
-        # Section header
         matches_header = ctk.CTkFrame(matches_section, corner_radius=6, height=35)
         matches_header.pack(fill="x", padx=15, pady=(15, 10))
         matches_header.pack_propagate(False)
@@ -279,7 +248,6 @@ class App:
             text_color=self.colors['text_primary']
         ).pack(pady=8)
         
-        # Slider with value display
         slider_frame = ctk.CTkFrame(matches_section, fg_color="transparent")
         slider_frame.pack(fill="x", padx=15, pady=(0, 15))
         
@@ -307,7 +275,6 @@ class App:
         
         self.matches_slider.configure(command=self.update_matches_label)
         
-        # Enhanced search button
         self.search_button = ctk.CTkButton(
             scrollable_search,
             text="Search CVs",
@@ -319,7 +286,6 @@ class App:
         )
         self.search_button.pack(fill="x", padx=10, pady=(10, 15))
         
-        # Clear button
         self.clear_button = ctk.CTkButton(
             scrollable_search,
             text="Clear Search",
@@ -336,7 +302,6 @@ class App:
     
     def setup_results_section(self, parent):
         """Setup the results display section with modern design"""
-        # Results header with stats
         header_frame = ctk.CTkFrame(parent, corner_radius=8, height=60)
         header_frame.grid(row=0, column=0, sticky="ew", padx=15, pady=(15, 10))
         header_frame.grid_propagate(False)
@@ -350,7 +315,6 @@ class App:
         )
         self.results_header.grid(row=0, column=0, padx=20, pady=18, sticky="w")
         
-        # Results counter
         self.results_counter = ctk.CTkLabel(
             header_frame,
             text="",
@@ -359,7 +323,6 @@ class App:
         )
         self.results_counter.grid(row=0, column=1, padx=20, pady=18, sticky="e")
         
-        # Modern scrollable frame for results with gray scrollbar
         self.results_scrollable = ctk.CTkScrollableFrame(
             parent,
             corner_radius=8,
@@ -368,10 +331,8 @@ class App:
         )
         self.results_scrollable.grid(row=1, column=0, sticky="nsew", padx=15, pady=(0, 15))
         
-        # Initial empty state
         self.show_empty_state()
         
-        # Enable smooth scrolling
         self.setup_scrolling(self.results_scrollable)
     
     def show_empty_state(self):
@@ -379,7 +340,6 @@ class App:
         empty_frame = ctk.CTkFrame(self.results_scrollable, corner_radius=10)
         empty_frame.pack(fill="both", expand=True, padx=20, pady=50)
         
-        # Icon placeholder
         icon_frame = ctk.CTkFrame(empty_frame, width=80, height=80, corner_radius=40)
         icon_frame.pack(pady=(40, 20))
         icon_frame.pack_propagate(False)
@@ -410,7 +370,6 @@ class App:
         num_matches = int(value)
         self.matches_label.configure(text=f"Show top {num_matches} matches")
         
-        # Brief highlight effect
         original_color = self.matches_label.cget("text_color")
         self.matches_label.configure(text_color=self.colors['accent'])
         self.root.after(200, lambda: self.matches_label.configure(text_color=original_color))
@@ -489,21 +448,17 @@ class App:
             self.keywords_entry.focus()
             return
         
-        # Disable search button and show loading state
         self.is_searching = True
         self.search_button.configure(text="Searching...", state="disabled")
         self.clear_button.configure(state="disabled")
         
-        # Parse keywords
         keywords = [k.strip() for k in keywords_text.split(',') if k.strip()]
         algorithm = self.algorithm_var.get()
         num_matches = self.num_matches_var.get()
         
-        # Clear previous results
         for widget in self.results_scrollable.winfo_children():
             widget.destroy()
         
-        # Show searching state
         searching_frame = ctk.CTkFrame(self.results_scrollable, corner_radius=10)
         searching_frame.pack(fill="x", padx=20, pady=20)
         
@@ -539,7 +494,6 @@ class App:
         """Handle search errors with user-friendly messages"""
         self.update_status(f"Search failed: {error_msg}", "error")
         
-        # Clear results and show error state
         for widget in self.results_scrollable.winfo_children():
             widget.destroy()
         
@@ -563,35 +517,39 @@ class App:
     
     def display_results(self, results: List[Dict[str, Any]], timing_info: Dict, keywords: List[str], algorithm: str):
         """Display search results with enhanced UI"""
-        # Clear searching state
         for widget in self.results_scrollable.winfo_children():
             widget.destroy()
         
-        # Update status and counter
+        filtered_results = []
+        for result in results:
+            total_exact = result.get('total_exact_matches', 0)
+            total_fuzzy = result.get('total_fuzzy_score', 0)
+            
+            if total_exact > 0 or total_fuzzy > 0:
+                filtered_results.append(result)
+        
         total_time = timing_info.get('total_exact_match_time', 0) + timing_info.get('total_fuzzy_match_time', 0)
         self.update_status(
-            f"Found {len(results)} matches in {total_time:.2f}ms using {algorithm} algorithm",
-            "success" if results else "warning"
+            f"Found {len(filtered_results)} matches in {total_time:.2f}ms using {algorithm} algorithm",
+            "success" if filtered_results else "warning"
         )
-        self.results_counter.configure(text=f"{len(results)} results found")
+        self.results_counter.configure(text=f"{len(filtered_results)} results found")
         
-        if not results:
+        if not filtered_results:
             self.show_no_results(keywords)
             return
         
-        # Display timing information
         timing_frame = ctk.CTkFrame(self.results_scrollable, corner_radius=8)
         timing_frame.pack(fill="x", padx=10, pady=(10, 15))
         
         timing_grid = ctk.CTkFrame(timing_frame, fg_color="transparent")
         timing_grid.pack(fill="x", padx=15, pady=10)
         
-        # Performance metrics
         metrics = [
             ("Algorithm", algorithm),
             ("Total Time", f"{total_time:.2f}ms"),
             ("Keywords", f"{len(keywords)} terms"),
-            ("Results", f"{len(results)} matches")
+            ("Results", f"{len(filtered_results)} matches")
         ]
         
         for i, (label, value) in enumerate(metrics):
@@ -612,8 +570,7 @@ class App:
                 text_color=self.colors['accent']
             ).pack(pady=(0, 8))
         
-        # Display results with enhanced cards
-        for i, result in enumerate(results, 1):
+        for i, result in enumerate(filtered_results, 1):
             cv_card = CVCard(
                 parent=self.results_scrollable,
                 result=result,
@@ -627,21 +584,20 @@ class App:
         no_results_frame = ctk.CTkFrame(self.results_scrollable, corner_radius=10)
         no_results_frame.pack(fill="x", padx=20, pady=30)
         
-        # Icon
         icon_frame = ctk.CTkFrame(no_results_frame, width=60, height=60, corner_radius=30)
         icon_frame.pack(pady=(30, 15))
         icon_frame.pack_propagate(False)
         
         ctk.CTkLabel(
             icon_frame,
-            text="?",
+            text="!",
             font=ctk.CTkFont(size=20, weight="bold"),
             text_color=self.colors['warning']
         ).pack(expand=True)
         
         ctk.CTkLabel(
             no_results_frame,
-            text="Sorry, no result",
+            text="Isinya ngawurr lurrr, ganti kata kunci",
             font=ctk.CTkFont(size=16, weight="bold"),
             text_color=self.colors['text_primary']
         ).pack(pady=(0, 10))
@@ -653,32 +609,9 @@ class App:
             text_color=self.colors['text_secondary']
         ).pack(pady=(0, 15))
         
-        # Suggestions
         suggestions_frame = ctk.CTkFrame(no_results_frame, fg_color="transparent")
         suggestions_frame.pack(fill="x", padx=20, pady=(0, 20))
         
-        ctk.CTkLabel(
-            suggestions_frame,
-            text="Try these suggestions:",
-            font=ctk.CTkFont(size=11, weight="bold"),
-            text_color=self.colors['text_primary']
-        ).pack(anchor="w", pady=(0, 5))
-        
-        suggestions = [
-            "• Check your spelling",
-            "• Use more general terms",
-            "• Try different keywords",
-            "• Use fewer search terms"
-        ]
-        
-        for suggestion in suggestions:
-            ctk.CTkLabel(
-                suggestions_frame,
-                text=suggestion,
-                font=ctk.CTkFont(size=10),
-                text_color=self.colors['text_secondary']
-            ).pack(anchor="w", pady=1)
-    
     def show_cv_summary(self, result: Dict[str, Any]):
         """Show CV summary in a new window"""
         summary_view = SummaryView(self.root, result)
@@ -687,7 +620,6 @@ class App:
         """Clear search with smooth animation"""
         self.keywords_entry.delete(0, 'end')
         
-        # Clear results with fade effect
         for widget in self.results_scrollable.winfo_children():
             widget.destroy()
         
@@ -708,9 +640,6 @@ class App:
                 widget.configure(fg_color=normal_color)
             return handler
         
-        # Add hover effects to buttons and interactive elements
-        # This would be implemented for custom widgets
-    
     def setup_scrolling(self, scrollable_frame):
         """Setup smooth mouse wheel scrolling"""
         def on_mousewheel(event):

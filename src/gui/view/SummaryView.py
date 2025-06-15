@@ -205,7 +205,7 @@ class SummaryView(ctk.CTkToplevel):
             ("Date of Birth", profile.get('date_of_birth', 'N/A')),
             ("Phone", profile.get('phone_number', 'N/A')),
             ("Address", profile.get('address', 'N/A')),
-            ("Applied Role", detail.get('application_role', 'N/A')),
+            ("Applied Role", detail.get('application_role', 'Position not specified')),
             ("CV File", detail.get('cv_path', 'N/A').split('/')[-1] if detail.get('cv_path') else 'N/A')
         ]
         

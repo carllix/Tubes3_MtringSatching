@@ -30,7 +30,7 @@ class CVService:
             applications_with_profiles = self.application_dao.getApplicationsWithProfiles()
             
             if not applications_with_profiles:
-                print("⚠️  No applications found in database. Please run the seeder first.")
+                print("No applications found in database. Please run the seeder first.")
                 return False
             
             cv_texts = {}
@@ -69,11 +69,11 @@ class CVService:
                     print(f"CV file not found: {full_cv_path}")
             
             self.cv_texts_cache = cv_texts
-            print(f"🎉 Successfully loaded {processed_count} CV texts into memory")
+            print(f"Successfully loaded {processed_count} CV texts into memory")
             return processed_count > 0
             
         except Exception as e:
-            print(f"💥 Error loading CV texts: {e}")
+            print(f"Error loading CV texts: {e}")
             import traceback
             traceback.print_exc()
             return False
