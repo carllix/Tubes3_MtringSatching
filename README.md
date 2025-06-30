@@ -4,7 +4,7 @@
 </h2>
 
 <p align="center">
-  <img src="doc/img/main.jpg" alt="main"/>
+  <img src="doc/img/main.png" alt="main"/>
 </p>
 
 ## Table of Contents
@@ -115,6 +115,11 @@ To launch the main application:
 python -m src.main
 ```
 
+## Sample Dataset
+You can use the following public dataset from Kaggle for testing and development purposes:
+- Resume Dataset
+  
+  https://www.kaggle.com/datasets/snehaanbhawal/resume-dataset
 ## Author
 
 | **NIM**  | **Nama Anggota**     | **Github**                              |

@@ -49,7 +49,7 @@ class CVService:
                     if cv_path.startswith('cv_files/'):
                         full_cv_path = os.path.join(AppConfig.BASE_DATA_PATH, cv_path)
                     else:
-                        full_cv_path = os.path.join(AppConfig.BASE_DATA_PATH, 'cv_files', cv_path)
+                        full_cv_path = os.path.join(AppConfig.BASE_DATA_PATH, cv_path)
                 else:
                     full_cv_path = cv_path
                 

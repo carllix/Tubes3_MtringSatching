@@ -761,7 +761,7 @@ class App:
             if cv_path.startswith('cv_files/'):
                 full_cv_path = os.path.join(AppConfig.BASE_DATA_PATH, cv_path)
             else:
-                full_cv_path = os.path.join(AppConfig.BASE_DATA_PATH, 'cv_files', cv_path)
+                full_cv_path = os.path.join(AppConfig.BASE_DATA_PATH, cv_path)
         else:
             full_cv_path = cv_path
         
@@ -850,7 +850,7 @@ class SimpleCVService:
                         'phone': f"+1-555-{random.randint(100, 999)}-{random.randint(1000, 9999)}"
                     },
                     'detail': {
-                        'cv_path': f"cv_files/{filename}",
+                        'cv_path': f"{filename}",
                         'summary': content
                     },
                     'match_info': {
