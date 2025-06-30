@@ -31,8 +31,7 @@ class AppConfig:
     PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     
     # Use absolute paths based on project root
-    BASE_DATA_PATH = os.path.join(PROJECT_ROOT, "data")
-    CV_FILES_PATH = os.path.join(BASE_DATA_PATH, "cv_files")
+    BASE_DATA_PATH = PROJECT_ROOT
     EXTRACTED_TEXT_PATH = os.path.join(BASE_DATA_PATH, "extracted_texts")
     
     # Application settings

@@ -544,7 +544,7 @@ class CVCard(ctk.CTkFrame):
                     if cv_path.startswith('cv_files/'):
                         full_path = os.path.join(AppConfig.BASE_DATA_PATH, cv_path)
                     else:
-                        full_path = os.path.join(AppConfig.BASE_DATA_PATH, 'cv_files', cv_path)
+                        full_path = os.path.join(AppConfig.BASE_DATA_PATH, cv_path)
                 except ImportError:
                     # Fallback if AppConfig is not available
                     full_path = cv_path
